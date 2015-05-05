@@ -14,7 +14,6 @@ module Authoricecream.Authorize (
   , authorizedThing
 
   , Authorizer(..)
-  , AuthorizationContext(..)
 
   ) where
 
@@ -40,18 +39,17 @@ authorizedThing = Authorize $ lift authenticatedThing
 withAuthorization
   :: forall ctx t r m a .
      ( MonadIO m
-     , AuthorizationContext ctx
-     , Authorizer (AuthorizationAgent ctx) t r
+     , Authorizer ctx t r
      )
   => ctx
   -> r
-  -> (NotAuthorizedReason (AuthorizationAgent ctx) t r -> Authenticate ctx t m a)
+  -> (NotAuthorizedReason ctx t r -> Authenticate ctx t m a)
   -- ^ in case not authorized!
   -> Authorize ctx t r m a
   -> Authenticate ctx t m a
 withAuthorization ctx resrc ifUnauthorized term = do
     datum <- authenticatedThing
-    decision <- lift $ authorize (authorizationAgent ctx) datum resrc
+    decision <- lift $ authorize ctx datum resrc
     case decision of
       Just denial -> ifUnauthorized denial
       Nothing -> runReaderT (runAuthorize term) resrc
@@ -65,7 +63,3 @@ class Authorizer ctx datum resource where
     -> datum
     -> resource
     -> m (Maybe (NotAuthorizedReason ctx datum resource))
-
-class AuthorizationContext ctx where
-  type AuthorizationAgent ctx
-  authorizationAgent :: ctx -> AuthorizationAgent ctx
