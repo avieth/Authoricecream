@@ -19,7 +19,6 @@ module Authoricecream.Authorize (
   ) where
 
 import Control.Applicative
-import Control.Monad.IO.Class
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.Reader
 import Authenticake.Authenticate
