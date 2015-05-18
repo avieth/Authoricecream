@@ -42,8 +42,8 @@ authorizedContext = Authorized $ lift authenticatedContext
 
 withAuthorization
   :: forall ctx t r m a .
-     ( MonadIO m
-     , Functor m
+     ( Functor m
+     , Monad m
      , Authorizes ctx t r
      )
   => ctx
@@ -62,7 +62,7 @@ withAuthorization ctx resrc ifUnauthorized term = do
 class Authorizes ctx datum resource where
   type NotAuthorizedReason ctx datum resource
   authorize
-    :: ( MonadIO m
+    :: (
        )
     => ctx
     -> datum
