@@ -19,6 +19,7 @@ module Authoricecream.Authorize (
   ) where
 
 import Control.Applicative
+import Control.Monad.IO.Class
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.Reader
 import Authenticake.Authenticate
@@ -43,6 +44,7 @@ withAuthorization
   :: forall ctx t r m a .
      ( Functor m
      , Monad m
+     , MonadIO m
      , Authorizes ctx t r
      )
   => ctx
@@ -53,7 +55,7 @@ withAuthorization
   -> Authenticate ctx t m a
 withAuthorization ctx resrc ifUnauthorized term = do
     datum <- authenticatedThing
-    decision <- lift $ authorize ctx datum resrc
+    decision <- lift . liftIO $ authorize ctx datum resrc
     case decision of
       Just denial -> ifUnauthorized denial
       Nothing -> runReaderT (runAuthorized term) resrc
@@ -66,4 +68,4 @@ class Authorizes ctx datum resource where
     => ctx
     -> datum
     -> resource
-    -> m (Maybe (NotAuthorizedReason ctx datum resource))
+    -> IO (Maybe (NotAuthorizedReason ctx datum resource))
